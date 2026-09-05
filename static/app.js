@@ -17,6 +17,7 @@ const knowledgeContentEl = document.getElementById("knowledgeContent");
 const adminMessageEl = document.getElementById("adminMessage");
 
 let state = loadState();
+let searchTerm = "";
 
 function createId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -24,7 +25,7 @@ function createId() {
 }
 function createConversation() {
   const now = Date.now();
-  return { id: createId(), title: "新对话", createdAt: now, updatedAt: now, messages: [{ role: "bot", text: WELCOME_MESSAGE, sources: [] }] };
+  return { id: createId(), title: "新对话", createdAt: now, updatedAt: now, messages: [] };
 }
 function loadState() {
   try {
@@ -45,7 +46,7 @@ function titleFromQuestion(question) { const compact = question.replace(/\s+/g, 
 
 function renderConversationList() {
   conversationListEl.replaceChildren(); conversationCountEl.textContent = state.conversations.length;
-  [...state.conversations].sort((a, b) => b.updatedAt - a.updatedAt).forEach((conversation) => {
+  [...state.conversations].filter((conversation) => !searchTerm || conversation.title.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => b.updatedAt - a.updatedAt).forEach((conversation) => {
     const item = document.createElement("div"); item.className = `conversation-item ${conversation.id === state.activeId ? "active" : ""}`;
     const button = document.createElement("button"); button.className = "conversation-main"; button.type = "button"; button.dataset.action = "select"; button.dataset.id = conversation.id;
     const title = document.createElement("strong"); title.textContent = conversation.title;
@@ -59,6 +60,10 @@ function renderConversationList() {
 function renderMessages() {
   const conversation = activeConversation(); if (!conversation) return;
   conversationTitleEl.textContent = conversation.title; messagesEl.replaceChildren();
+  if (!conversation.messages.length) {
+    messagesEl.innerHTML = `<div class="empty-state"><div class="empty-mark">R</div><h2>今天想了解什么？</h2><p>从知识库中检索信息，获得更准确的客服回答。</p><div class="quick-prompts"><button class="quick-prompt" type="button" data-prompt="怎么申请退款？">怎么申请退款？</button><button class="quick-prompt" type="button" data-prompt="配送通常需要多久？">配送通常需要多久？</button><button class="quick-prompt" type="button" data-prompt="如何保护账户安全？">如何保护账户安全？</button><button class="quick-prompt" type="button" data-prompt="有哪些支付方式？">有哪些支付方式？</button></div></div>`;
+    return;
+  }
   conversation.messages.forEach((message) => {
     const wrapper = document.createElement("div"); wrapper.className = `message-group ${message.role}`;
     const bubble = document.createElement("div"); bubble.className = `msg ${message.role}`; bubble.textContent = message.text; wrapper.appendChild(bubble);
@@ -73,6 +78,8 @@ function renderMessages() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 function render() { renderConversationList(); renderMessages(); }
+function sendPrompt(prompt) { inputEl.value = prompt; send(); }
+
 function touchConversation(conversation) { conversation.updatedAt = Date.now(); saveState(); renderConversationList(); }
 function selectConversation(id) { if (!state.conversations.some((item) => item.id === id)) return; state.activeId = id; saveState(); render(); inputEl.focus(); }
 function newConversation() { const conversation = createConversation(); state.conversations.push(conversation); state.activeId = conversation.id; saveState(); render(); inputEl.focus(); }
@@ -157,6 +164,12 @@ async function saveKnowledge() {
 }
 
 conversationListEl.addEventListener("click", (event) => { const target = event.target.closest("button[data-action]"); if (!target) return; const { action, id } = target.dataset; if (action === "select") selectConversation(id); if (action === "rename") renameConversation(id); if (action === "delete") deleteConversation(id); });
+messagesEl.addEventListener("click", (event) => { const target = event.target.closest("button[data-prompt]"); if (target) sendPrompt(target.dataset.prompt); });
+document.getElementById("conversationSearch").addEventListener("input", (event) => { searchTerm = event.target.value.trim(); renderConversationList(); });
+document.getElementById("clearSearch").addEventListener("click", () => { searchTerm = ""; document.getElementById("conversationSearch").value = ""; renderConversationList(); });
+document.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); newConversation(); } });
+document.getElementById("railKnowledge").addEventListener("click", () => document.getElementById("openAdmin").click());
+document.getElementById("railSettings").addEventListener("click", () => document.getElementById("openAdmin").click());
 newConversationBtn.addEventListener("click", newConversation);
 renameConversationBtn.addEventListener("click", () => renameConversation());
 exportTxtBtn.addEventListener("click", () => exportConversation("txt"));
@@ -166,5 +179,6 @@ document.getElementById("closeAdmin").addEventListener("click", () => adminDialo
 document.getElementById("loadKnowledge").addEventListener("click", loadKnowledge);
 document.getElementById("saveKnowledge").addEventListener("click", saveKnowledge);
 sendBtn.addEventListener("click", send);
-inputEl.addEventListener("keydown", (event) => { if (event.key === "Enter") send(); });
+inputEl.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } });
+inputEl.addEventListener("input", () => { inputEl.style.height = "auto"; inputEl.style.height = `${Math.min(inputEl.scrollHeight, 120)}px`; });
 render(); inputEl.focus();
