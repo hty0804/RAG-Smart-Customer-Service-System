@@ -133,6 +133,13 @@ pytest -q
 
 `app/vector_store.py` 默认用 NumPy 余弦检索，适合中小知识库。若需更高性能，可安装 `faiss-cpu` 并将 `add / search / save / load` 替换为 FAISS 的 `IndexFlatIP`（配合归一化向量即余弦相似度），接口保持不变。
 
+## 更多文档
+
+- [使用上手文档（给非技术同事）](docs/使用上手文档.md)：三步跑起来、如何维护知识库、常见问题对照表
+- [部署指南（本地 → 云端）](docs/部署指南.md)：Docker 部署、Railway/Render/阿里云等通用步骤、上线前安全与稳定性检查
+
+> 想用 Docker 一键部署？项目已附带 `Dockerfile` 与 `.dockerignore`，密钥通过环境变量传入，切勿写进镜像。
+
 ## 技术栈
 
 - 后端：FastAPI + Uvicorn

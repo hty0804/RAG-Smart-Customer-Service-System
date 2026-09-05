@@ -1,0 +1,10 @@
+# 不纳入镜像的内容
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+data/index.npy
+data/chunks.json
