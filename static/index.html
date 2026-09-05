@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG 智能客服</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>🤖 智能客服</h1>
+      <span class="subtitle">基于 RAG 检索增强生成</span>
+    </header>
+    <main id="messages" class="messages"></main>
+    <section id="sources" class="sources hidden"></section>
+    <footer class="input-area">
+      <input id="input" type="text" placeholder="请输入您的问题，例如：怎么退款？" autocomplete="off" />
+      <button id="send">发送</button>
+    </footer>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
