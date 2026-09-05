@@ -3,6 +3,7 @@ import re
 from . import config
 from .vector_store import VectorStore
 from .llm_client import LLMClient
+from .embeddings import get_embedding_client
 
 SYSTEM_PROMPT = (
     "你是一个专业、友好的智能客服助手。"
@@ -51,16 +52,25 @@ def build_prompt(query, contexts):
 
 
 class RAGSystem:
-    def __init__(self, llm_client=None):
+    def __init__(self, llm_client=None, embedding_client=None):
         # 允许注入自定义客户端（测试时注入 Mock）
         self.llm = llm_client or LLMClient()
         self.store = None
+        # 嵌入客户端优先级：显式传入 > 按 EMBEDDING_PROVIDER 配置选择
+        # 注意：不再回退到 self.llm.embed，否则会无视 EMBEDDING_PROVIDER 设置，
+        # 在 DeepSeek（无 Embedding 接口）等场景下调错接口。
+        if embedding_client is not None:
+            self.embedder = embedding_client
+        else:
+            # 仅在 llm 暴露 OpenAI 客户端时透传（Mock 等自定义客户端无需 client）
+            openai_client = getattr(self.llm, "client", None)
+            self.embedder = get_embedding_client(openai_client)
 
     def build_index(self, kb_path=config.KNOWLEDGE_BASE_PATH):
         with open(kb_path, "r", encoding="utf-8") as f:
             text = f.read()
         chunks = chunk_text(text)
-        vectors = self.llm.embed(chunks)
+        vectors = self.embedder.embed(chunks)
         store = VectorStore(len(vectors[0]))
         store.add(vectors, chunks)
         store.save()
@@ -74,7 +84,7 @@ class RAGSystem:
     def answer(self, query):
         if self.store is None:
             self.load_index()
-        qvec = self.llm.embed([query])[0]
+        qvec = self.embedder.embed([query])[0]
         contexts = self.store.search(qvec, config.TOP_K)
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},

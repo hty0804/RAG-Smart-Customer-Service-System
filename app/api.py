@@ -31,7 +31,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="RAG 智能客服对话系统", version="1.0.0", lifespan=lifespan)
-rag = RAGSystem(llm_client=MockLLMClient() if USE_MOCK else None)
+rag = RAGSystem(
+    llm_client=MockLLMClient() if USE_MOCK else None,
+    embedding_client=MockLLMClient() if USE_MOCK else None,
+)
 
 
 class ChatRequest(BaseModel):

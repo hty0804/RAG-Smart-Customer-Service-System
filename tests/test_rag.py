@@ -19,12 +19,12 @@ def test_chunk_text():
 
 
 def test_rag_build_and_retrieve():
-    rag = RAGSystem(llm_client=MockLLMClient())
+    rag = RAGSystem(llm_client=MockLLMClient(), embedding_client=MockLLMClient())
     n = rag.build_index()
     assert n > 0
     assert os.path.exists(api.config.CHUNKS_PATH)
 
-    rag2 = RAGSystem(llm_client=MockLLMClient())
+    rag2 = RAGSystem(llm_client=MockLLMClient(), embedding_client=MockLLMClient())
     rag2.load_index()
     res = rag2.answer("怎么退款")
     assert res["answer"]
@@ -34,7 +34,7 @@ def test_rag_build_and_retrieve():
 
 
 def test_api_endpoint():
-    rag = RAGSystem(llm_client=MockLLMClient())
+    rag = RAGSystem(llm_client=MockLLMClient(), embedding_client=MockLLMClient())
     rag.build_index()
     api.rag = rag  # 注入已构建索引的实例
     client = TestClient(api.app)

@@ -7,6 +7,7 @@
 - 📚 **RAG 全流程**：文档切分 → 向量化 → 向量检索 → 提示词拼接 → 大模型生成
 - 🔌 **OpenAI 兼容接口**：支持 OpenAI / DeepSeek / Azure / 本地 llama.cpp 等任意兼容服务
 - 🧩 **零额外依赖向量库**：默认使用 NumPy 余弦检索，开箱即用（附 FAISS 升级说明）
+- 🔀 **双向量化后端**：OpenAI Embedding、本地 `sentence-transformers`，以及完全离线的词哈希模式
 - 💬 **网页聊天界面**：内置单页前端，可直接对话并查看参考来源
 - ✅ **无 Key 自测**：内置 Mock 客户端，无需 API Key 也能跑通全链路测试
 
@@ -19,7 +20,7 @@
 前端 (static/) ──POST /chat──▶ FastAPI (app/api.py)
                                    │
                                    ▼
-                           文本向量化 (llm_client.embed)
+                           文本向量化 (embeddings.py)
                                    │
                                    ▼
                            向量检索 (vector_store, Top-K)
@@ -41,7 +42,8 @@ rag-customer-service/
 ├── app/
 │   ├── __init__.py
 │   ├── config.py          # 配置与路径
-│   ├── llm_client.py      # Embedding + Chat 客户端（兼容 OpenAI 接口）
+│   ├── llm_client.py      # Chat 客户端（兼容 OpenAI 接口）
+│   ├── embeddings.py      # Embedding 后端（OpenAI / 本地 / 离线）
 │   ├── vector_store.py    # 向量库（NumPy 余弦检索）
 │   ├── rag.py             # RAG 核心管线
 │   ├── mock_client.py     # 无 Key 自测用的 Mock 客户端
@@ -74,16 +76,37 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-编辑 `.env`，填入你的密钥：
+编辑 `.env`，填入你的密钥。
+
+**OpenAI：**只需改这一行即可：
 
 ```ini
 OPENAI_API_KEY=sk-你的真实key
-# 可选：如果用 DeepSeek 等，改成对应 BASE_URL，例如：
-# OPENAI_BASE_URL=https://api.deepseek.com/v1
-# CHAT_MODEL=deepseek-chat
 ```
 
-> 只需改 `OPENAI_API_KEY` 这一行即可用 OpenAI；其余都有默认值。
+**DeepSeek：**DeepSeek 只提供对话接口，没有 Embedding 接口，因此需要本地向量化：
+
+```ini
+OPENAI_API_KEY=sk-你的deepseek-key
+OPENAI_BASE_URL=https://api.deepseek.com/v1
+CHAT_MODEL=deepseek-chat
+EMBEDDING_PROVIDER=local
+EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+```
+
+并额外安装本地向量化依赖：
+
+```bash
+pip install -r requirements-local-embeddings.txt
+```
+
+如果当前电脑无法下载模型或不想安装大体积依赖，可使用完全离线的词哈希模式：
+
+```ini
+EMBEDDING_PROVIDER=offline
+```
+
+> `offline` 适合演示和受限网络，检索主要依据词面相似度；正式使用优先选择 `local`。
 
 ### 3. 构建知识库索引
 
@@ -122,6 +145,8 @@ pytest -q
 ```
 
 测试覆盖：文本切分、索引构建、向量检索、HTTP 接口，全程使用 Mock 客户端，无需任何 API Key。
+
+> 如果你已经在 `.env` 中配置了 `EMBEDDING_PROVIDER=local`，测试仍会通过：测试会显式注入 Mock 向量化客户端，不会下载模型。
 
 ## 自定义知识库
 
