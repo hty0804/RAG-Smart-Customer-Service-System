@@ -11,32 +11,23 @@
     <aside class="sidebar" aria-label="对话列表">
       <div class="sidebar-header">
         <div class="brand-mark">R</div>
-        <div>
-          <strong>智能客服</strong>
-          <span>RAG 对话助手</span>
-        </div>
+        <div><strong>智能客服</strong><span>RAG 对话助手</span></div>
       </div>
-      <button id="newConversation" class="new-conversation" type="button">
-        <span aria-hidden="true">＋</span> 新建对话
-      </button>
-      <div class="conversation-heading">
-        <span>对话记录</span>
-        <span id="conversationCount" class="conversation-count">0</span>
-      </div>
+      <button id="newConversation" class="new-conversation" type="button"><span aria-hidden="true">＋</span> 新建对话</button>
+      <div class="conversation-heading"><span>对话记录</span><span id="conversationCount" class="conversation-count">0</span></div>
       <nav id="conversationList" class="conversation-list"></nav>
-      <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span>本地会话记录</span>
-      </div>
+      <div class="sidebar-footer"><span class="status-dot"></span><span>本地会话记录</span></div>
     </aside>
 
     <section class="chat-panel">
       <header class="header">
-        <div>
-          <h1 id="conversationTitle">新对话</h1>
-          <span class="subtitle">基于 RAG 检索增强生成</span>
+        <div><h1 id="conversationTitle">新对话</h1><span class="subtitle">基于 RAG 检索增强生成</span></div>
+        <div class="header-actions">
+          <button id="exportTxt" class="icon-button" type="button" title="导出 TXT">TXT</button>
+          <button id="exportJson" class="icon-button" type="button" title="导出 JSON">JSON</button>
+          <button id="openAdmin" class="icon-button" type="button" title="管理员知识库">⚙</button>
+          <button id="renameConversation" class="icon-button" type="button" title="重命名当前对话">✎</button>
         </div>
-        <button id="renameConversation" class="icon-button" type="button" title="重命名当前对话" aria-label="重命名当前对话">✎</button>
       </header>
       <main id="messages" class="messages" aria-live="polite"></main>
       <footer class="input-area">
@@ -45,6 +36,18 @@
       </footer>
     </section>
   </div>
+
+  <dialog id="adminDialog" class="admin-dialog">
+    <form method="dialog" class="admin-card" id="adminForm">
+      <div class="modal-header"><div><h2>管理员知识库</h2><p>编辑后保存会自动重建向量索引。</p></div><button id="closeAdmin" class="modal-close" type="button">×</button></div>
+      <label for="adminToken">管理员密钥</label>
+      <input id="adminToken" type="password" placeholder="对应服务端 ADMIN_TOKEN" autocomplete="off" />
+      <label for="knowledgeContent">知识库内容</label>
+      <textarea id="knowledgeContent" rows="14" placeholder="不同主题之间用空行分隔"></textarea>
+      <div id="adminMessage" class="admin-message"></div>
+      <div class="modal-actions"><button id="loadKnowledge" class="secondary-button" type="button">读取知识库</button><button id="saveKnowledge" class="primary-button" type="button">保存并重建索引</button></div>
+    </form>
+  </dialog>
   <script src="/app.js"></script>
 </body>
 </html>

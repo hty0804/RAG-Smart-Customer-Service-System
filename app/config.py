@@ -18,6 +18,8 @@ CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-3.5-turbo")
 TOP_K = int(os.getenv("TOP_K", "3"))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "300"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
+# 管理员接口密钥；为空时禁用知识库写入接口（更安全）
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
 
 KNOWLEDGE_BASE_PATH = os.path.join(BASE_DIR, "data", "knowledge_base.txt")
 INDEX_PATH = os.path.join(BASE_DIR, "data", "index.npy")

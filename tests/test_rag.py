@@ -46,3 +46,22 @@ def test_api_endpoint():
     assert r.status_code == 200
     body = r.json()
     assert "answer" in body and body["answer"]
+
+
+def test_stream_endpoint():
+    rag = RAGSystem(llm_client=MockLLMClient(), embedding_client=MockLLMClient())
+    rag.build_index()
+    api.rag = rag
+    client = TestClient(api.app)
+
+    response = client.post("/chat/stream", json={"query": "怎么退款"})
+    assert response.status_code == 200
+    assert "event: sources" in response.text
+    assert "event: token" in response.text
+    assert "event: done" in response.text
+
+
+def test_admin_disabled_by_default():
+    client = TestClient(api.app)
+    response = client.get("/admin/knowledge-base")
+    assert response.status_code == 503

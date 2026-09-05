@@ -25,3 +25,8 @@ class MockLLMClient:
     def chat(self, messages):
         last = messages[-1]["content"]
         return "（Mock 回复）我已根据知识库为您整理以下信息：\n" + last[:300]
+
+    def chat_stream(self, messages):
+        """模拟流式输出，便于无需 API Key 联调前端。"""
+        text = self.chat(messages)
+        return iter(text[i : i + 8] for i in range(0, len(text), 8))

@@ -38,3 +38,12 @@ class LLMClient:
             temperature=0.3,
         )
         return resp.choices[0].message.content
+
+    def chat_stream(self, messages):
+        """以文本增量形式返回流式对话结果。"""
+        return self.client.chat.completions.create(
+            model=config.CHAT_MODEL,
+            messages=messages,
+            temperature=0.3,
+            stream=True,
+        )

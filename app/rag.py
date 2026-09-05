@@ -66,7 +66,8 @@ class RAGSystem:
             openai_client = getattr(self.llm, "client", None)
             self.embedder = get_embedding_client(openai_client)
 
-    def build_index(self, kb_path=config.KNOWLEDGE_BASE_PATH):
+    def build_index(self, kb_path=None):
+        kb_path = kb_path or config.KNOWLEDGE_BASE_PATH
         with open(kb_path, "r", encoding="utf-8") as f:
             text = f.read()
         chunks = chunk_text(text)
@@ -81,14 +82,26 @@ class RAGSystem:
         self.store = VectorStore.load()
         return self.store
 
-    def answer(self, query):
+    def retrieve(self, query, top_k=None):
+        """只执行检索，供普通回答、流式回答和管理功能复用。"""
         if self.store is None:
             self.load_index()
         qvec = self.embedder.embed([query])[0]
-        contexts = self.store.search(qvec, config.TOP_K)
-        messages = [
+        return self.store.search(qvec, top_k or config.TOP_K)
+
+    def messages_for(self, query, contexts):
+        return [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": build_prompt(query, contexts)},
         ]
-        reply = self.llm.chat(messages)
+
+    def answer(self, query, top_k=None):
+        contexts = self.retrieve(query, top_k)
+        reply = self.llm.chat(self.messages_for(query, contexts))
         return {"answer": reply, "sources": contexts}
+
+    def stream_answer(self, query, top_k=None):
+        """返回参考来源和文本增量生成器，供 SSE 接口使用。"""
+        contexts = self.retrieve(query, top_k)
+        stream = self.llm.chat_stream(self.messages_for(query, contexts))
+        return contexts, stream
