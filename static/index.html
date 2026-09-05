@@ -7,17 +7,43 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <h1>🤖 智能客服</h1>
-      <span class="subtitle">基于 RAG 检索增强生成</span>
-    </header>
-    <main id="messages" class="messages"></main>
-    <section id="sources" class="sources hidden"></section>
-    <footer class="input-area">
-      <input id="input" type="text" placeholder="请输入您的问题，例如：怎么退款？" autocomplete="off" />
-      <button id="send">发送</button>
-    </footer>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="对话列表">
+      <div class="sidebar-header">
+        <div class="brand-mark">R</div>
+        <div>
+          <strong>智能客服</strong>
+          <span>RAG 对话助手</span>
+        </div>
+      </div>
+      <button id="newConversation" class="new-conversation" type="button">
+        <span aria-hidden="true">＋</span> 新建对话
+      </button>
+      <div class="conversation-heading">
+        <span>对话记录</span>
+        <span id="conversationCount" class="conversation-count">0</span>
+      </div>
+      <nav id="conversationList" class="conversation-list"></nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>本地会话记录</span>
+      </div>
+    </aside>
+
+    <section class="chat-panel">
+      <header class="header">
+        <div>
+          <h1 id="conversationTitle">新对话</h1>
+          <span class="subtitle">基于 RAG 检索增强生成</span>
+        </div>
+        <button id="renameConversation" class="icon-button" type="button" title="重命名当前对话" aria-label="重命名当前对话">✎</button>
+      </header>
+      <main id="messages" class="messages" aria-live="polite"></main>
+      <footer class="input-area">
+        <input id="input" type="text" placeholder="请输入您的问题，例如：怎么退款？" autocomplete="off" />
+        <button id="send" type="button">发送</button>
+      </footer>
+    </section>
   </div>
   <script src="/app.js"></script>
 </body>
